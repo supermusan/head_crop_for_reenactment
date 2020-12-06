@@ -132,14 +132,8 @@ python crop_nemo.py --in_folder /path/to/videos --out_folder nemo --device_ids 0
 
 #### Additional notes
 
-Citation:
+Reference:
 
 ```
-@InProceedings{Siarohin_2019_NeurIPS,
-  author={Siarohin, Aliaksandr and Lathuilière, Stéphane and Tulyakov, Sergey and Ricci, Elisa and Sebe, Nicu},
-  title={First Order Motion Model for Image Animation},
-  booktitle = {Conference on Neural Information Processing Systems (NeurIPS)},
-  month = {December},
-  year = {2019}
-}
+https://github.com/AliaksandrSiarohin/video-preprocessing
 ```
