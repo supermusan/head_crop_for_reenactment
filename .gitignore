@@ -1,0 +1,8 @@
+bbox*/*
+*.zip
+dperfs1*/*
+face-alignment/*
+__pycache__/*
+txt/*
+youtube-dl
+*.csv
