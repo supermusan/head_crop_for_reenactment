@@ -34,7 +34,12 @@ def save_bbox_list(video_path, bbox_list):
     f.close()
 
 
-def estimate_bbox(video_path, fa):
+def estimate_bbox(video_path, fa, check_exists=False):
+    if check_exists:
+        if os.path.exists(os.path.join(args.bbox_folder, os.path.basename(video_path)[:-4] + '.txt')):
+            print('Existed:{}'.format(
+                os.path.join(args.bbox_folder, os.path.basename(video_path)[:-4] + '.txt')))
+            return
     reader = imageio.get_reader(video_path)
     bbox_list = []
 
@@ -177,7 +182,7 @@ def run(params):
             for chunk, video_id in videos_path_list:
                 while True:
                     try:
-                        estimate_bbox(chunk, fa)
+                        estimate_bbox(chunk, fa, args.bbox_check_exists)
                         break
                     except RuntimeError as e:
                         if str(e).startswith('CUDA'):
@@ -238,6 +243,8 @@ if __name__ == "__main__":
                         help="Do not estimate the bboxes")
     parser.add_argument("--no-crop", dest="crop", action="store_false", help="Do not crop the videos")
     parser.add_argument("--only_count", dest="only_count", action="store_true", help="Count the samples in dataset")
+    parser.add_argument("--bbox_check_exists", dest="bbox_check_exists", action="store_true",
+                        help="skip the existed bbox *.txt")
 
     # parser.add_argument("--remove-intermediate-results", dest="remove_intermediate_results", action="store_true",
     #                     help="Remove intermediate videos")
@@ -248,6 +255,7 @@ if __name__ == "__main__":
     parser.set_defaults(estimate_bbox=True)
     # parser.set_defaults(remove_intermediate_results=False)
     parser.set_defaults(only_count=False)
+    parser.set_defaults(bbox_check_exists=False)
 
     args = parser.parse_args()
 
