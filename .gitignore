@@ -6,3 +6,5 @@ __pycache__/*
 txt/*
 youtube-dl
 *.csv
+*png/*
+*mp4/*

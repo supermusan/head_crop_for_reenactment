@@ -66,12 +66,14 @@ def crop_bbox_from_frames(frame_list, tube_bbox, min_frames=16, image_shape=(256
                           increase_area=0.1, aspect_preserving=True):
     frame_shape = frame_list[0].shape
     # Filter short sequences
+    # print(len(frame_list))
     if len(frame_list) < min_frames:
         return None, None
     left, top, right, bot = tube_bbox
     width = right - left
     height = bot - top
     # Filter if it is too small
+    # print(max(width, height))
     if max(width, height) < min_size:
         return None, None
     

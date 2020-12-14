@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 
 DEVNULL = open(os.devnull, 'wb')
 REF_FRAME_SIZE = 360
-REF_FPS = 30
+REF_FPS = 25
 
 
 def extract_bbox(frame, fa):
@@ -165,22 +165,27 @@ def run(params):
     os.environ['CUDA_VISIBLE_DEVICES'] = device_id
     # update the config options with the config file
     if args.estimate_bbox:
-        print("loading face_landmarker.")
+        # print("loading face_landmarker.")
         import face_alignment
         fa = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, flip_input=False)
-    data_folder_id = os.path.join(args.dataset_folder, person_id)
-    print("data_folder_id:", data_folder_id)
-    blendshape_videos = [(item, os.path.split(item)[0].replace(data_folder_id+'/', "").replace('/', '-'))
-                         for item in glob.glob(os.path.join(data_folder_id, "*/*/*.mp4"))]
-    other_videos = [(item, os.path.split(item)[0].replace(data_folder_id+'/', "").replace('/', '-'))
-                    for item in glob.glob(os.path.join(data_folder_id, "*/*/*/*.mp4"))]
-    videos_path_list = sorted(blendshape_videos + other_videos, key=lambda x:x[1])
+    #data_folder_id = os.path.join(args.dataset_folder, person_id)
+    #print("data_folder_id:", data_folder_id)
+    #blendshape_videos = [(item, os.path.split(item)[0].replace(data_folder_id+'/', "").replace('/', '-'))
+    #                     for item in glob.glob(os.path.join(data_folder_id, "*/*/*.mp4"))]
+    #other_videos = [(item, os.path.split(item)[0].replace(data_folder_id+'/', "").replace('/', '-'))
+    #                for item in glob.glob(os.path.join(data_folder_id, "*/*/*/*.mp4"))]
+    #videos_path_list = sorted(blendshape_videos + other_videos, key=lambda x:x[1])
+    # videos_path_list = sorted(os.path.join(args.dataset_folder, person_id))
+    videos_path_list = [os.path.join(args.dataset_folder, person_id)]
+    print(videos_path_list[0])
+
 
     chunks_data = []
+    video_id = ""
 
     try:
         if args.estimate_bbox:
-            for chunk, video_id in videos_path_list:
+            for chunk in videos_path_list:
                 while True:
                     try:
                         estimate_bbox(chunk, fa, args.bbox_check_exists)
@@ -193,7 +198,7 @@ def run(params):
                             print(e)
                             break
         if args.crop:
-            for chunk, video_id in videos_path_list:
+            for chunk in videos_path_list:
                 if not os.path.exists(os.path.join(args.bbox_folder, os.path.basename(chunk)[:-4] + '.txt')):
                     print(os.path.join(args.bbox_folder, os.path.basename(chunk)[:-4] + '.txt'))
                     print("BBox not found %s" % chunk)
@@ -210,7 +215,7 @@ def run(params):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--dataset_folder",
-                        default='/data_activate/wangweisen/reenactment/dataset/DeeperForensics-1.0/source_videos',
+                        default='/data_activate/wangweisen/reenactment/dataset/TIMIT/real_videos',
                         help='Root path to src videos')
 
     parser.add_argument("--iou_with_initial", type=float, default=0.25,
@@ -225,21 +230,13 @@ if __name__ == "__main__":
     parser.add_argument("--neighbor_or_initial", default='initial',
                         help='calculate IOU between current box and initial/neighbor box')
 
-    # parser.add_argument("--video_folder", default='videos', help='Path to intermediate videos')
-    # parser.add_argument("--chunk_folder", default='chunks', help="Path to folder with video chunks")
-    parser.add_argument("--bbox_folder", default='bbox', help="Path to folder with bboxes")
-    parser.add_argument("--out_folder", default='dperfs1-png', help='Folder for processed dataset')
-    parser.add_argument("--chunks_metadata", default='vox-metadata.csv', help='File with metadata')
+    parser.add_argument("--bbox_folder", default='bbox-timit', help="Path to folder with bboxes")
+    parser.add_argument("--out_folder", default='timit-png', help='Folder for processed dataset')
+    parser.add_argument("--chunks_metadata", default='timit-metadata.csv', help='File with metadata')
 
     parser.add_argument("--workers", default=1, type=int, help='Number of parallel workers')
     parser.add_argument("--device_ids", default="0", help="Names of the devices comma separated.")
 
-    # parser.add_argument("--data_range", default=(0, 10000), type=lambda x: tuple(map(int, x.split('-'))), help="Range of ids for processing")
- 
-
-    # parser.add_argument("--no-download", dest="download", action="store_false", help="Do not download videos")
-    # parser.add_argument("--no-split-in-utterance", dest="split_in_utterance", action="store_false",
-    #                     help="Do not split videos in chunks")
     parser.add_argument("--no-estimate-bbox", dest="estimate_bbox", action="store_false",
                         help="Do not estimate the bboxes")
     parser.add_argument("--no-crop", dest="crop", action="store_false", help="Do not crop the videos")
@@ -247,25 +244,14 @@ if __name__ == "__main__":
     parser.add_argument("--bbox_check_exists", dest="bbox_check_exists", action="store_true",
                         help="skip the existed bbox *.txt")
 
-    # parser.add_argument("--remove-intermediate-results", dest="remove_intermediate_results", action="store_true",
-    #                     help="Remove intermediate videos")
-
-    # parser.set_defaults(download=True)
-    # parser.set_defaults(split_in_utterance=True)
     parser.set_defaults(crop=True)
     parser.set_defaults(estimate_bbox=True)
-    # parser.set_defaults(remove_intermediate_results=False)
     parser.set_defaults(only_count=False)
     parser.set_defaults(bbox_check_exists=False)
 
     args = parser.parse_args()
 
     TEST_PERSONS = []
-
-    # if not os.path.exists(args.video_folder):
-    #     os.makedirs(args.video_folder)
-    # if not os.path.exists(args.chunk_folder):
-    #     os.makedirs(args.chunk_folder)
     if not os.path.exists(args.bbox_folder):
         os.makedirs(args.bbox_folder)
     if not os.path.exists(args.out_folder):
@@ -284,5 +270,6 @@ if __name__ == "__main__":
     if args.only_count:
         scheduler_count(ids, count_dataset, args)
         exit(0)
+    # print(ids)
 
     scheduler(ids, run, args)
